@@ -1,0 +1,25 @@
+{
+    "compilerOptions": {
+        "incremental": true,
+        "moduleResolution": "node",
+        "removeComments": false,
+        "target": "ES2021",
+        "strict": true,
+        "module": "ESNext",
+        "noEmitOnError": true,
+        "esModuleInterop": true,
+        "skipLibCheck": true,
+        "resolveJsonModule": true,
+        "emitDecoratorMetadata": true,
+        "experimentalDecorators": true,
+        "baseUrl": ".",
+        "paths": {
+            "~classes": ["src/classes"],
+            "~constants": ["src/constants"],
+            "~decorators": ["src/decorators"],
+            "~services": ["src/services"],
+            "~types": ["src/types"],
+            "~utils": ["src/utils"]
+        }
+    }
+}
