@@ -12,7 +12,7 @@ import {
     RegistryModule,
     RegistryService,
     ServiceProvider,
-} from '../../src'
+} from '@diexpkg/registry'
 
 // Step 1: Define a simple service with a method to be dynamically invoked.
 // The @MethodProvider decorator registers the method 'world' under 'SimpleService'.

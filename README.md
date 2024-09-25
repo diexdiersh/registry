@@ -3,6 +3,21 @@
 
 RegistryLib is a NestJS module that facilitates dynamic method invocation across unrelated modules. It allows developers to manage and invoke methods from different services at runtime without requiring direct imports or tight coupling, promoting clean, modular, and scalable code.
 
+- [RegistryLib](#registrylib)
+  - [Motivation](#motivation)
+  - [Features](#features)
+  - [Install the Package](#install-the-package)
+  - [Getting Started](#getting-started)
+  - [Core Concepts](#core-concepts)
+    - [RegistryService](#registryservice)
+    - [@MethodProvider](#methodprovider)
+    - [@ServiceProvider](#serviceprovider)
+    - [How It Integrates with NestJS](#how-it-integrates-with-nestjs)
+  - [When to Use RegistryLib](#when-to-use-registrylib)
+    - [Good Use Cases](#good-use-cases)
+    - [When to Avoid or Use with Caution](#when-to-avoid-or-use-with-caution)
+  - [Compatibility](#compatibility)
+
 ## Motivation
 
 In large-scale NestJS applications, managing dependencies across various modules often leads to tightly coupled code, complex conditional logic, and difficulties in extending functionality. As new modules are added, the need to update dependencies and ensure seamless integration becomes cumbersome.
@@ -15,6 +30,28 @@ RegistryLib addresses these challenges by providing a centralized service that m
 - **Decoupled Modules**: Enable independent module development without tight integration, keeping modules unaware of each other's implementations.
 - **Simplified API**: Provides a straightforward way to manage and invoke methods from various services, reducing boilerplate logic.
 - **Scalable Architecture**: Easily add or modify services without altering existing code, making your system more flexible and adaptable.
+
+## Install the Package
+
+You can install RegistryLib using npm/yarn/pnpm:
+
+npm:
+
+```sh
+npm install @diexpkg/registry
+```
+
+yarn:
+
+```sh
+yarn add @diexpkg/registry
+```
+
+pnpm:
+
+```sh
+pnpm install @diexpkg/registry
+```
 
 ## Getting Started
 
@@ -37,7 +74,7 @@ To start using RegistryLib in your NestJS application, follow these steps:
 
     ```typescript
     import { Injectable, Module } from '@nestjs/common';
-    import { MethodProvider, ServiceProvider } from 'registry-lib';
+    import { MethodProvider, ServiceProvider } from '@diexpkg/registry';
 
     @MethodProvider('SimpleService')
     @Injectable()
@@ -57,7 +94,7 @@ To start using RegistryLib in your NestJS application, follow these steps:
 
     ```typescript
     import { Injectable, Logger } from '@nestjs/common';
-    import { RegistryService } from 'registry-lib';
+    import { RegistryService } from '@diexpkg/registry';
 
     @Injectable()
     class HelloService {
