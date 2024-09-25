@@ -15,7 +15,7 @@ export const assertData = (
     const { keys, method } = data
 
     if (!keys.length) {
-        throw ERROR_KEYS_EMPTY
+        throw ERROR_KEYS_EMPTY()
     }
 
     if (keys.length < 2) {
@@ -49,7 +49,7 @@ export const assertBatchData = (
     const { keys, method } = data
 
     if (!keys.length) {
-        throw ERROR_KEYS_EMPTY
+        throw ERROR_KEYS_EMPTY()
     }
 
     let checkGraph: any = { ...graph }

@@ -1,157 +1,121 @@
-# Registry Lib
 
-This library helps manage complex nested logic by allowing you to provide methods of multiple services within a module, accessible from anywhere in your code, without explicitly defining imports and exports.
+# RegistryLib
+
+RegistryLib is a NestJS module that facilitates dynamic method invocation across unrelated modules. It allows developers to manage and invoke methods from different services at runtime without requiring direct imports or tight coupling, promoting clean, modular, and scalable code.
 
 ## Motivation
 
-When you want to provide a simple API with straightforward methods but need to manage complex logic from multiple unrelated modules, you often end up with tightly coupled code and boilerplate logic (if/else/switch statements). Adding new modules becomes cumbersome as you need to update dependencies and ensure everything integrates correctly.
+In large-scale NestJS applications, managing dependencies across various modules often leads to tightly coupled code, complex conditional logic, and difficulties in extending functionality. As new modules are added, the need to update dependencies and ensure seamless integration becomes cumbersome.
 
-One solution is to handle this import logic at runtime, for example during the application initialization phase.
+RegistryLib addresses these challenges by providing a centralized service that manages method invocation across modules. This reduces boilerplate code, simplifies module interactions, and allows for independent module development.
 
-This library is a NestJS module that simplifies this process by providing a service to manage such logic efficiently.
+## Features
 
-## Architecture
+- **Dynamic Method Invocation**: Invoke methods from services across different modules dynamically at runtime, without direct imports.
+- **Decoupled Modules**: Enable independent module development without tight integration, keeping modules unaware of each other's implementations.
+- **Simplified API**: Provides a straightforward way to manage and invoke methods from various services, reducing boilerplate logic.
+- **Scalable Architecture**: Easily add or modify services without altering existing code, making your system more flexible and adaptable.
 
-### Before
+## Getting Started
 
-```mermaid
-flowchart LR
- subgraph subgraph_cg9e9nt2i["Module B"]
-        node_kfe33ckyp("Service B1")
-  end
- subgraph subgraph_yb8ozenov["Module C"]
-        node_mk2w2fuqc("Service C1")
-        nl("Service C2")
-        no("Service C3")
-  end
- subgraph subgraph_jnetwu4d6["Untitled Service"]
-        node_r7ffnxawj["Start method call"]
-        ni[/"Read selector key"/]
-        nv{{"If key == A"}}
-        nj["Call method from Service B1"]
-        na{{"If param &gt; 42"}}
-        nx["Call method from Serevice C1"]
-        n3["Call method from Service C2"]
-  end
-    nz[\"Module B"/] -- import Service B1 --> nu("Unified Service")
-    nh[\"Module C"/] -- import Service C2, Service C3 --> nu
-    subgraph_cg9e9nt2i --> nz
-    subgraph_yb8ozenov --> nh
-    node_mk2w2fuqc --> nl & no
-    nu --> subgraph_jnetwu4d6
-    node_r7ffnxawj --> ni
-    ni --> nv
-    nv -- true --> nj
-    nv -- false --> na
-    na -- true --> n3
-    na -- false --> nx
-    style node_kfe33ckyp fill:#FFFFFF
-    style node_mk2w2fuqc fill:#FFFFFF
-    style nl fill:#FFFFFF
-    style no fill:#FFFFFF
-    style nj fill:#FFE0B2
-    style nx fill:#BBDEFB
-    style n3 fill:#BBDEFB
-    style nz fill:#FFE0B2,stroke:#FFE0B2
-    style nh fill:#BBDEFB
-    style subgraph_cg9e9nt2i fill:#FFE0B2,stroke:#000000
-    style subgraph_yb8ozenov fill:#BBDEFB,stroke:#000000
-```
+To start using RegistryLib in your NestJS application, follow these steps:
 
-1. All modules bound together.
-   With service exports.
+1. **Import the RegistryModule**: Include `RegistryModule` in your main application module.
 
-    - Module B exports Service B1.
-    - Module C exports Service C2 and Service C3.
+    ```typescript
+    import { RegistryModule } from '@diexpkg/registry';
 
-    And module imports, because to use the method from services Unified Module needs to implicitly import Modules, and inject each service in Unified Service.
+    @Module({
+        imports: [RegistryModule],
+    })
+    export class AppModule {}
+    ```
 
-    Right now this looks fine, but if you need more than two different modules, that number will grow in the future, the picture starts to look terrifying.
+2. **Register Services with `@ServiceProvider` and `@MethodProvider` Decorators**:
+    - Use the `@ServiceProvider` decorator on your module to register it with the registry. This is necessary for any module whose services you want to invoke dynamically.
+    - Use the `@MethodProvider` decorator on the service methods you want to expose. The string passed to `@MethodProvider` should be a unique identifier for that service.
 
-2. Complex if/else/switch logic.
-   Unified Service contains if/else/switch logic to decide which method to call based on conditions.
-   All this logic leads to hardly readable boilerplate code.
+    ```typescript
+    import { Injectable, Module } from '@nestjs/common';
+    import { MethodProvider, ServiceProvider } from 'registry-lib';
 
-3. Difficult to implement new functionality.
-   Adding new features requires modifying the existing conditional logic, increasing the risk of breaking existing functionality.
+    @MethodProvider('SimpleService')
+    @Injectable()
+    class SimpleService {
+        world(): string {
+            return 'world';
+        }
+    }
 
-### After
+    @ServiceProvider('SimpleModule')
+    @Module({ providers: [SimpleService] })
+    class SimpleModule {}
+    ```
 
-```mermaid
-flowchart LR
- subgraph subgraph_cg9e9nt2i["Module B"]
-        node_kfe33ckyp("Service B1")
-        nc["@MethodProvider('B')<br>Service B2"]
-  end
- subgraph subgraph_yb8ozenov["Module C"]
-        node_mk2w2fuqc("Service C1")
-        nl("Service C2")
-        no("Service C3")
-        nn("@MethodProvider('C')<br>Service C4")
-  end
- subgraph subgraph_jnetwu4d6["Untitled Service"]
-        node_r7ffnxawj["Start method call"]
-        ni[/"Read selector key"/]
-        nv{{"Is method exist selected for A key?"}}
-        nj["Call method from source Service"]
-        na["Method not implemented!"]
-  end
- subgraph subgraph_gumtihx15["Service C4"]
-        node_39obyd0sk["Start method call<br>"]
-        n2{{"If param &gt; 42<br>"}}
-        ng["Call method from Service C2<br>"]
-        n9["Call method from Serevice C1<br>"]
-  end
- subgraph subgraph_brtcja9ma["Service B2"]
-        node_ijylk29qg["Start method call"]
-        nf["Call method from Serevice B1<br>"]
-  end
-    subgraph_cg9e9nt2i --> nz[\"@ServiceProvider('B')<br>Module B"/]
-    subgraph_yb8ozenov --> nh[\"@ServiceProvider('C')<br>Module C"/]
-    node_mk2w2fuqc --> nl & no
-    nu("Unified Service") --> subgraph_jnetwu4d6
-    node_r7ffnxawj --> ni
-    ni --> nv
-    nv -- true --> nj
-    nv -- false --> na
-    no --> nn
-    nl --> nn
-    node_kfe33ckyp --> nc
-    n4["RegistryService"] -- Inject --> nu
-    nn --> subgraph_gumtihx15
-    node_39obyd0sk --> n2
-    n2 -- true --> ng
-    n2 -- false --> n9
-    nc --> subgraph_brtcja9ma
-    node_ijylk29qg --> nf
-    nr[\"@ServiceProvider('B')<br style="--tw-border-spacing-x: 0; --tw-border-spacing-y: 0; --tw-translate-x: 0; --tw-translate-y: 0; --tw-rotate: 0; --tw-skew-x: 0; --tw-skew-y: 0; --tw-scale-x: 1; --tw-scale-y: 1; --tw-pan-x: ; --tw-pan-y: ; --tw-pinch-zoom: ; --tw-scroll-snap-strictness: proximity; --tw-gradient-from-position: ; --tw-gradient-via-position: ; --tw-gradient-to-position: ; --tw-ordinal: ; --tw-slashed-zero: ; --tw-numeric-figure: ; --tw-numeric-spacing: ; --tw-numeric-fraction: ; --tw-ring-inset: ; --tw-ring-offset-width: 0px; --tw-ring-offset-color: ﬂ°fff¶ß --tw-ring-color: rgb(59 130 246 / .5); --tw-ring-offset-shadow: 0 0 ﬂ°°0000¶ß --tw-ring-shadow: 0 0 ﬂ°°0000¶ß --tw-shadow: 0 0 ﬂ°°0000¶ß --tw-shadow-colored: 0 0 ﬂ°°0000¶ß --tw-blur: ; --tw-brightness: ; --tw-contrast: ; --tw-grayscale: ; --tw-hue-rotate: ; --tw-invert: ; --tw-saturate: ; --tw-sepia: ; --tw-drop-shadow: ; --tw-backdrop-blur: ; --tw-backdrop-brightness: ; --tw-backdrop-contrast: ; --tw-backdrop-grayscale: ; --tw-backdrop-hue-rotate: ; --tw-backdrop-invert: ; --tw-backdrop-opacity: ; --tw-backdrop-saturate: ; --tw-backdrop-sepia: ; --tw-contain-size: ; --tw-contain-layout: ; --tw-contain-paint: ; --tw-contain-style: ;">Module B<br>"/] -. Collected .-o n4
-    n6[\"@ServiceProvider('C')<br style="--tw-border-spacing-x: 0; --tw-border-spacing-y: 0; --tw-translate-x: 0; --tw-translate-y: 0; --tw-rotate: 0; --tw-skew-x: 0; --tw-skew-y: 0; --tw-scale-x: 1; --tw-scale-y: 1; --tw-pan-x: ; --tw-pan-y: ; --tw-pinch-zoom: ; --tw-scroll-snap-strictness: proximity; --tw-gradient-from-position: ; --tw-gradient-via-position: ; --tw-gradient-to-position: ; --tw-ordinal: ; --tw-slashed-zero: ; --tw-numeric-figure: ; --tw-numeric-spacing: ; --tw-numeric-fraction: ; --tw-ring-inset: ; --tw-ring-offset-width: 0px; --tw-ring-offset-color: ﬂ°fff¶ß --tw-ring-color: rgb(59 130 246 / .5); --tw-ring-offset-shadow: 0 0 ﬂ°°0000¶ß --tw-ring-shadow: 0 0 ﬂ°°0000¶ß --tw-shadow: 0 0 ﬂ°°0000¶ß --tw-shadow-colored: 0 0 ﬂ°°0000¶ß --tw-blur: ; --tw-brightness: ; --tw-contrast: ; --tw-grayscale: ; --tw-hue-rotate: ; --tw-invert: ; --tw-saturate: ; --tw-sepia: ; --tw-drop-shadow: ; --tw-backdrop-blur: ; --tw-backdrop-brightness: ; --tw-backdrop-contrast: ; --tw-backdrop-grayscale: ; --tw-backdrop-hue-rotate: ; --tw-backdrop-invert: ; --tw-backdrop-opacity: ; --tw-backdrop-saturate: ; --tw-backdrop-sepia: ; --tw-contain-size: ; --tw-contain-layout: ; --tw-contain-paint: ; --tw-contain-style: ;">Module C<br>"/] -. Collected .-o n4
-    style node_kfe33ckyp fill:#FFFFFF
-    style nc fill:#FFFFFF
-    style node_mk2w2fuqc fill:#FFFFFF
-    style nl fill:#FFFFFF
-    style no fill:#FFFFFF
-    style nn fill:#FFFFFF
-    style node_39obyd0sk fill:#FFFFFF
-    style n2 fill:#FFFFFF
-    style ng fill:#FFFFFF
-    style n9 fill:#FFFFFF
-    style node_ijylk29qg fill:#FFFFFF
-    style nf fill:#FFFFFF
-    style subgraph_cg9e9nt2i stroke:#000000,fill:#FFE0B2
-    style nz fill:#FFE0B2
-    style subgraph_yb8ozenov fill:#BBDEFB,stroke:#000000
-    style nh fill:#BBDEFB
-    style subgraph_gumtihx15 fill:#BBDEFB,stroke:#000000
-    style subgraph_brtcja9ma stroke:#000000,fill:#FFE0B2
-    style nr stroke-width:4px,stroke-dasharray: 5,fill:#FFE0B2
-    style n6 stroke-width:4px,stroke-dasharray: 5,fill:#BBDEFB
-```
+3. **Invoke Methods Dynamically Using `RegistryService`**:
+    - Inject `RegistryService` where needed and use it to dynamically call methods from registered services. The `graph` property in `RegistryService` represents the internal structure that holds the references to all registered services and their methods.
 
-1. All modules are unrelated.
-   These modules don't know about the existence of each other.
-   So development on each of them can be independent.
-   But this requires additional agreements about how to provide methods to unified service, like a shared list of interfaces that allow implementing the specific method, so that Unified Service will easily detect accessibility of method, etc.
+    ```typescript
+    import { Injectable, Logger } from '@nestjs/common';
+    import { RegistryService } from 'registry-lib';
 
-2. All complex if/else/switch needs to be realized within each related module.
-   So there need to be defined strict boundaries between modules and Unified Service.
+    @Injectable()
+    class HelloService {
+        private readonly _logger = new Logger();
+
+        constructor(private readonly _registryService: RegistryService) {}
+
+        async hello(): Promise<string> {
+            const world = await this._registryService.graph.tryCall<SimpleService>({
+                keys: ['SimpleModule', 'SimpleService'],
+                method: 'world',
+                params: [],
+            });
+
+            this._logger.log(`Hello: ${world}`);
+            return world;
+        }
+    }
+    ```
+
+## Core Concepts
+
+### RegistryService
+
+The `RegistryService` is the central service that manages the registry of service methods and enables dynamic, runtime method calls. It builds a graph of all registered services and their methods during the application's initialization.
+
+### @MethodProvider
+
+The `@MethodProvider` decorator marks a service method that will be registered in the `RegistryService`. The string passed to the decorator should uniquely identify the service across the application.
+
+### @ServiceProvider
+
+The `@ServiceProvider` decorator registers a module and its services within the `RegistryService`. Only modules that need their services to be invoked dynamically require this decorator.
+
+### How It Integrates with NestJS
+
+`RegistryLib` integrates seamlessly with NestJS’s existing Dependency Injection system. It doesn’t replace or modify NestJS's DI but extends it by providing a dynamic invocation mechanism, allowing methods to be called based on runtime conditions rather than compile-time imports. This adds flexibility to module interaction and service usage.
+
+## When to Use RegistryLib
+
+### Good Use Cases
+
+- **Large Modular Applications**: Ideal for applications with many independent modules where decoupling and dynamic interaction are important.
+- **Simplifying Conditional Logic**: Helps reduce complex `if/else` or `switch` statements by dynamically invoking methods based on runtime conditions.
+- **Feature Toggle Systems**: Useful in systems with feature toggles or plugins, allowing dynamic addition and invocation of services.
+- **Extensible Architectures**: Perfect for applications where you frequently add or modify services, as it reduces the need to alter existing code.
+
+### When to Avoid or Use with Caution
+
+- **Small, Simple Applications**: The overhead might not be justified for simple applications where services are tightly integrated.
+- **Performance-Sensitive Applications**: The additional layer of dynamic method invocation introduces slight overhead, which could be a concern in high-performance scenarios.
+- **Debugging and Maintenance Complexity**: Dynamic invocation can complicate debugging and make the system harder to maintain, especially in large teams.
+- **Hidden Dependencies**: The registry approach can obscure dependencies, making it harder for developers to understand how different parts of the system are connected.
+
+## Compatibility
+
+RegistryLib is compatible with NestJS versions X.X.X and above. It has been tested with the following versions:
+
+- NestJS 10.X.X
+
+Make sure your project is using a compatible version of NestJS to avoid potential issues.

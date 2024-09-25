@@ -14,7 +14,11 @@ const jestConfig: JestConfigWithTsJest = {
     transform: {
         '^.+\\.(t|j)s$': [
             'ts-jest',
-            { tsconfig: 'tsconfig.build.json', isolatedModules: true },
+            {
+                tsconfig: 'tsconfig.build.json',
+                isolatedModules: true,
+                useESM: true,
+            },
         ],
     },
     maxConcurrency: 10,

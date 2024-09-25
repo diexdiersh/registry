@@ -1,4 +1,4 @@
-import { ExtractMethods } from './extract-methods.type'
+import { ExtractMethods } from './utils.type'
 import { UnwrapPromise } from './unwrap-promise.type'
 
 export type BasicGraphWrapper = {
