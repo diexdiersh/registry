@@ -1,2 +1,2 @@
-export * from "./error.const";
-export * from "./empty.const";
+export * from './empty.const'
+export * from './errors.const'
